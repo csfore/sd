@@ -4,7 +4,19 @@ import os
 import flag
 
 fn main() {
+    mut bin_location := ''
 
+    $if windows {
+        // bin_location = 'TODO'
+        println('Currently not supported on Windows.')
+        exit(0)
+    } $else $if linux {
+        bin_location = '${os.home_dir()}/.cache/sd_bin'
+        if !os.exists(bin_location) {
+            os.mkdir(bin_location)!
+            os.chmod(bin_location, 0o777)!
+        }
+    }
 
 	mut fp := flag.new_flag_parser(os.args)
     fp.application('sd')
@@ -15,6 +27,8 @@ fn main() {
     is_forced := fp.bool('force', `f`, false, 'ignore nonexistent files and arguments, never prompt')
 	is_prompt := fp.bool('prompt', `i`, false, 'prompt before every removal')
     is_verbose := fp.bool('verbose', `v`, false, 'explain what is being done')
+    recursive := fp.bool('recursive', `r`, false, 'recurses directories')
+    show_bin := fp.bool('bin', `b`, false, 'displays the recycling bin')
 
     nonargs := fp.finalize() or {
         eprintln(err)
@@ -26,41 +40,32 @@ fn main() {
 
     mut files := nonargs.clone()
 
+    if show_bin {
+        println('show bin')
+        exit(0)
+    }
+
+    if nonargs.len == 0 {
+        exit(0)
+    }
+
+    cwd := os.getwd()
+
+    if !os.exists('${bin_location}${cwd}') {
+            os.mkdir_all('${bin_location}${cwd}')!
+    }
+
     for file in files {
         if is_verbose {
             println('Removing ${file}')
         }
-        println('delete here')
+        // os.rm('test/${file}')!
+        // println('${bin_location}${cwd}')
+
+        os.mv('${file}', '${bin_location}${cwd}') or {
+            eprintln(err)
+            exit(0)
+        }
+        // os.mv_by_cp('${file}', '${bin_location}${cwd}')!
     }
 }
-
-// fn clean_args(mut args []string) []string {
-//     for arg in args 
-// }
-
-// module main
-
-// import os
-// import cli
-
-// fn main() {
-//     mut app := cli.Command{
-//         name: 'example-app'
-//         description: 'example-app'
-//         execute: fn (cmd cli.Command) ! {
-//             println('no arguments provided.')
-//             return
-//         }
-//         commands: [
-//             cli.Command{
-//                 name: '--sub'
-//                 execute: fn (cmd cli.Command) ! {
-//                     println('hello subcommand')
-//                     return
-//                 }
-//             },
-//         ]
-//     }
-//     app.setup()
-//     app.parse(os.args)
-// }

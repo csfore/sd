@@ -1,5 +1,5 @@
 env:
-	echo "making test environment"
+	@echo "making test environment"
 	@mkdir test
 	@touch test/file1
 	@touch test/file2
@@ -7,5 +7,8 @@ env:
 	@touch test/sub/subfile 
 
 rm:
-	echo "deleting test environment"
+	@echo "deleting test environment"
 	@rm -rf test/
+	@rm -rf /home/csfore/.cache/sd_bin
+
+clean: rm env
